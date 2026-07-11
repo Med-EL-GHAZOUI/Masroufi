@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/finance_provider.dart';
 import '../services/export_service.dart';
 
@@ -30,21 +31,21 @@ class StatsScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Aperçu',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                Text(
+                  'overview'.tr(),
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 Row(
                   children: [
                     IconButton(
                       icon: const Icon(Icons.picture_as_pdf, color: Colors.red),
                       onPressed: () => ExportService.exportToPdf(provider),
-                      tooltip: 'Exporter en PDF',
+                      tooltip: 'export_pdf'.tr(),
                     ),
                     IconButton(
                       icon: const Icon(Icons.table_chart, color: Colors.green),
                       onPressed: () => ExportService.exportToExcel(provider),
-                      tooltip: 'Exporter en Excel',
+                      tooltip: 'export_excel'.tr(),
                     ),
                   ],
                 ),
@@ -54,9 +55,9 @@ class StatsScreen extends StatelessWidget {
             _buildBarChart(provider, context),
             const SizedBox(height: 32),
             if (categoryTotals.isNotEmpty) ...[
-              const Text(
-                'Répartition des Dépenses',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                'expense_distribution'.tr(),
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -86,27 +87,38 @@ class StatsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 32),
-              const Text(
-                'Détails par Catégorie',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                'details_by_category'.tr(),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               ...categoryTotals.entries.map((entry) {
                 final cat = provider.categories.firstWhere(
                   (c) => c.id == entry.key,
                 );
-                return ListTile(
-                  leading: Icon(Icons.circle, color: _getColor(cat.color)),
-                  title: Text(cat.name),
-                  trailing: Text(
-                    '${entry.value.toStringAsFixed(2)} DH',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                return Card(
+                  elevation: 2,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: _getColor(cat.color).withOpacity(0.2),
+                      child: Icon(Icons.category, color: _getColor(cat.color), size: 20),
+                    ),
+                    title: Text(cat.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    trailing: Text(
+                      '${entry.value.toStringAsFixed(2)} DH',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
                   ),
                 );
               }),
             ] else
-              const Center(
-                child: Text('Aucune dépense pour afficher les statistiques.'),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Text('no_expense_stats'.tr(), textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600], fontSize: 16)),
+                ),
               ),
           ],
         ),
@@ -122,9 +134,9 @@ class StatsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            const Text(
-              'Revenus vs Dépenses',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Text(
+              'income_vs_expense'.tr(),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -144,11 +156,14 @@ class StatsScreen extends StatelessWidget {
                       sideTitles: SideTitles(
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
-                          return Text(
-                            value.toInt() == 0 ? 'Revenus' : 'Dépenses',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              value.toInt() == 0 ? 'income'.tr() : 'expense'.tr(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
                             ),
                           );
                         },

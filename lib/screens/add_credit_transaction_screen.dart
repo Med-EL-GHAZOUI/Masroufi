@@ -123,8 +123,13 @@ class _AddCreditTransactionScreenState
               const SizedBox(height: 16),
               TextFormField(
                 decoration: InputDecoration(
-                  labelText: 'amount'.tr(),
-                  border: const OutlineInputBorder(),
+                  labelText: 'amount_dh'.tr(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[100],
                   prefixIcon: const Padding(
                     padding: EdgeInsets.all(12.0),
                     child: Text(
@@ -142,8 +147,8 @@ class _AddCreditTransactionScreenState
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty)
-                    return 'Champs obligatoire';
-                  if (double.tryParse(value) == null) return 'Montant invalide';
+                    return 'required_field'.tr();
+                  if (double.tryParse(value) == null) return 'invalid_amount'.tr();
                   return null;
                 },
                 onSaved: (value) => _amount = double.parse(value!),
@@ -152,8 +157,13 @@ class _AddCreditTransactionScreenState
               TextFormField(
                 initialValue: _note,
                 decoration: InputDecoration(
-                  labelText: 'note'.tr(),
-                  border: const OutlineInputBorder(),
+                  labelText: 'note_description'.tr(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[100],
                   prefixIcon: const Icon(Icons.note),
                   suffixIcon: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -204,17 +214,24 @@ class _AddCreditTransactionScreenState
                     ],
                   ),
                 ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: 55,
                 child: ElevatedButton(
                   onPressed: _save,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).primaryColor,
                     foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 2,
                   ),
-                  child: Text('save'.tr()),
+                  child: Text(
+                    'save'.tr(),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ],

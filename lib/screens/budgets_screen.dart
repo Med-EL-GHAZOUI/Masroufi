@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/finance_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../models/budget.dart';
 
 class BudgetsScreen extends StatelessWidget {
@@ -9,14 +10,34 @@ class BudgetsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mes Budgets'), centerTitle: true),
+      appBar: AppBar(title: Text('budgets'.tr()), centerTitle: true),
       body: Consumer<FinanceProvider>(
         builder: (context, finance, child) {
           if (finance.budgets.isEmpty) {
-            return const Center(
-              child: Text(
-                'Aucun budget défini. Contrôlez vos dépenses !',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.account_balance_wallet,
+                    size: 80,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'no_budgets_title'.tr(),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'no_budgets_desc'.tr(),
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ],
               ),
             );
           }
@@ -25,81 +46,119 @@ class BudgetsScreen extends StatelessWidget {
             itemCount: finance.budgets.length,
             itemBuilder: (context, index) {
               final budget = finance.budgets[index];
-              // Assuming we calculate spent amount later based on transactions
-              final spentAmount = 0.0; // Placeholder
-              final progress = (spentAmount / budget.amount).clamp(0.0, 1.0);
+              final spentAmount = finance.transactions
+                  .where((t) =>
+                      t.isExpense &&
+                      '${t.date.year}-${t.date.month.toString().padLeft(2, '0')}' ==
+                          budget.month &&
+                      (budget.categoryId == null ||
+                          t.categoryId == budget.categoryId))
+                  .fold(0.0, (sum, item) => sum + item.amount);
+              final progress = budget.amount > 0 ? (spentAmount / budget.amount).clamp(0.0, 1.0) : 0.0;
+              final remaining = budget.amount - spentAmount;
 
-              return Card(
-                elevation: 4,
+              return Container(
                 margin: const EdgeInsets.only(bottom: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Theme.of(context).cardColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(20.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            budget.categoryId != null
-                                ? 'Budget Catégorie'
-                                : 'Budget Global',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).primaryColor.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.account_balance_wallet,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  budget.categoryId != null
+                                      ? 'category_budget'.tr()
+                                      : 'global_budget'.tr(),
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${'month'.tr()}: ${budget.month}',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           Text(
-                            '${budget.amount.toStringAsFixed(2)} MAD',
+                            '${budget.amount.toStringAsFixed(2)} DH',
                             style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Mois: ${budget.month}',
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      LinearProgressIndicator(
-                        value: progress,
-                        backgroundColor: Colors.grey.shade200,
-                        color: progress > 0.9
-                            ? Colors.red
-                            : Theme.of(context).primaryColor,
-                        minHeight: 8,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 24),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Dépensé: ${spentAmount.toStringAsFixed(2)} MAD',
+                            '${'spent'.tr()}: ${spentAmount.toStringAsFixed(2)} DH',
                             style: const TextStyle(
                               color: Colors.grey,
-                              fontSize: 12,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                           Text(
-                            'Restant: ${(budget.amount - spentAmount).toStringAsFixed(2)} MAD',
+                            '${'remaining'.tr()}: ${remaining.toStringAsFixed(2)} DH',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: (budget.amount - spentAmount) < 0
-                                  ? Colors.red
-                                  : Colors.green,
+                              fontSize: 14,
+                              color: remaining < 0 ? Colors.red : Colors.green,
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 12),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          backgroundColor: Colors.grey.shade200,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            progress > 0.9
+                                ? Colors.red
+                                : (progress > 0.7
+                                    ? Colors.orange
+                                    : Theme.of(context).primaryColor),
+                          ),
+                          minHeight: 10,
+                        ),
                       ),
                     ],
                   ),
@@ -123,13 +182,15 @@ class BudgetsScreen extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Nouveau Budget'),
+          title: Text('new_budget'.tr()),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: amountController,
-                decoration: const InputDecoration(labelText: 'Montant (MAD)'),
+                decoration: InputDecoration(
+                  labelText: '${'budget_amount'.tr()} (MAD)',
+                ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
@@ -140,7 +201,7 @@ class BudgetsScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
+              child: Text('cancel'.tr()),
             ),
             ElevatedButton(
               onPressed: () {
@@ -158,7 +219,7 @@ class BudgetsScreen extends StatelessWidget {
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Ajouter'),
+              child: Text('add'.tr()),
             ),
           ],
         );

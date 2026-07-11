@@ -3,6 +3,11 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'phone_auth_screen.dart';
+import 'settings/security_screen.dart';
+import 'settings/notifications_screen.dart';
+import 'settings/theme_screen.dart';
+import 'settings/export_data_screen.dart';
+import 'settings/about_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -34,33 +39,59 @@ class SettingsScreen extends StatelessWidget {
           ),
           const Divider(),
           ListTile(
-            leading: const Icon(Icons.sync),
-            title: const Text('Synchronisation et Sauvegarde'),
-            subtitle: Text(
-              authService.isAuthenticated
-                  ? 'Connecté (Sauvegarde active)'
-                  : 'Non connecté, appuyez pour lier votre numéro',
-            ),
-            trailing: authService.isAuthenticated
-                ? const Icon(Icons.check_circle, color: Colors.green)
-                : ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const PhoneAuthScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text('Se connecter'),
-                  ),
+            leading: const Icon(Icons.security, color: Colors.blueGrey),
+            title: Text('security'.tr()),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () {
-              if (!authService.isAuthenticated) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PhoneAuthScreen()),
-                );
-              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SecurityScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.notifications, color: Colors.amber),
+            title: Text('notifications'.tr()),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.palette, color: Colors.purple),
+            title: Text('theme'.tr()),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ThemeScreen()),
+              );
+            },
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.file_download, color: Colors.green),
+            title: Text('export_data'.tr()),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ExportDataScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.info, color: Colors.blue),
+            title: Text('about_app'.tr()),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AboutScreen()),
+              );
             },
           ),
         ],

@@ -47,7 +47,6 @@ class LocalDbService {
       await isar.accounts.putAll([
         Account(name: 'Espèces', balance: 0.0, type: 'cash'),
         Account(name: 'Banque', balance: 0.0, type: 'bank'),
-        Account(name: 'Carte bancaire', balance: 0.0, type: 'card'),
       ]);
 
       // Insert default categories
@@ -120,6 +119,14 @@ class LocalDbService {
         ),
       ]);
     });
+  }
+
+  Future<void> clearAllData() async {
+    final db = await instance.isar;
+    await db.writeTxn(() async {
+      await db.clear();
+    });
+    await _seedDatabase(db);
   }
 
   Future<void> close() async {

@@ -147,6 +147,27 @@ class FinanceProvider with ChangeNotifier {
     SyncService.instance.syncData();
   }
 
+  Future<void> updateGoal(SavingsGoal goal) async {
+    final isar = await dbService.isar;
+    await isar.writeTxn(() async {
+      goal.updatedAt = DateTime.now();
+      await isar.savingsGoals.put(goal);
+    });
+    await _loadGoals();
+    notifyListeners();
+    SyncService.instance.syncData();
+  }
+
+  Future<void> deleteGoal(int id) async {
+    final isar = await dbService.isar;
+    await isar.writeTxn(() async {
+      await isar.savingsGoals.delete(id);
+    });
+    await _loadGoals();
+    notifyListeners();
+    SyncService.instance.syncData();
+  }
+
   // --- Calculations ---
   double get totalBalance =>
       _accounts.fold(0, (sum, item) => sum + item.balance);

@@ -7,6 +7,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/person.dart';
 import '../models/credit_transaction.dart';
 import '../providers/credit_provider.dart';
@@ -22,11 +24,32 @@ class PersonDetailsScreen extends StatelessWidget {
     List<CreditTransaction> transactions,
     double balance,
   ) async {
+    final isArabic = context.locale.languageCode == 'ar';
+
+    final String title = '${'account_statement'.tr()} - ${person.name}';
+    final String phoneLabel = 'phone'.tr();
+    final String dateLabel = 'date'.tr();
+    final String totalReceivedStr = 'total_received'.tr();
+    final String totalGivenStr = 'total_given'.tr();
+    final String currentBalanceStr = 'current_balance'.tr();
+    final String historyTitle = '${'transaction_history'.tr()}:';
+    final String typeHeader = 'type'.tr();
+    final String noteHeader = 'note'.tr();
+    final String amountHeader = 'amount'.tr();
+    final String receivedStr = 'received'.tr();
+    final String givenStr = 'given'.tr();
+
     final pdf = pw.Document();
 
     final imageByteData = await rootBundle.load('assets/images/logo.jpeg');
     final imageBytes = imageByteData.buffer.asUint8List();
     final logoImage = pw.MemoryImage(imageBytes);
+
+    final font = isArabic ? await PdfGoogleFonts.cairoRegular() : null;
+    final boldFont = isArabic ? await PdfGoogleFonts.cairoBold() : null;
+    final textDirection = isArabic
+        ? pw.TextDirection.rtl
+        : pw.TextDirection.ltr;
 
     double totalDonne = 0;
     double totalRecu = 0;
@@ -41,6 +64,10 @@ class PersonDetailsScreen extends StatelessWidget {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
+        textDirection: textDirection,
+        theme: font != null
+            ? pw.ThemeData.withFont(base: font, bold: boldFont)
+            : null,
         build: (pw.Context ctx) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -60,7 +87,7 @@ class PersonDetailsScreen extends StatelessWidget {
                         ),
                       ),
                       pw.Text(
-                        'Relevé de compte - ${person.name}',
+                        title,
                         style: pw.TextStyle(
                           fontSize: 20,
                           color: PdfColors.grey700,
@@ -68,7 +95,7 @@ class PersonDetailsScreen extends StatelessWidget {
                       ),
                       pw.SizedBox(height: 5),
                       pw.Text(
-                        'Téléphone : ${person.phone ?? "--"}  |  Date : ${DateTime.now().toString().substring(0, 10)}',
+                        '$phoneLabel : ${person.phone ?? "--"}  |  $dateLabel : ${DateTime.now().toString().substring(0, 10)}',
                         style: const pw.TextStyle(fontSize: 14),
                       ),
                     ],
@@ -81,7 +108,9 @@ class PersonDetailsScreen extends StatelessWidget {
                 padding: const pw.EdgeInsets.all(15),
                 decoration: pw.BoxDecoration(
                   color: PdfColors.grey100,
-                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
+                  borderRadius: const pw.BorderRadius.all(
+                    pw.Radius.circular(10),
+                  ),
                   border: pw.Border.all(color: PdfColors.grey300),
                 ),
                 child: pw.Row(
@@ -89,28 +118,58 @@ class PersonDetailsScreen extends StatelessWidget {
                   children: [
                     pw.Column(
                       children: [
-                        pw.Text('Total Reçu', style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey700)),
+                        pw.Text(
+                          totalReceivedStr,
+                          style: const pw.TextStyle(
+                            fontSize: 14,
+                            color: PdfColors.grey700,
+                          ),
+                        ),
                         pw.Text(
                           '${totalRecu.toStringAsFixed(2)} DH',
-                          style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.green600),
+                          style: pw.TextStyle(
+                            fontSize: 18,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.green600,
+                          ),
                         ),
                       ],
                     ),
                     pw.Column(
                       children: [
-                        pw.Text('Total Donné', style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey700)),
+                        pw.Text(
+                          totalGivenStr,
+                          style: const pw.TextStyle(
+                            fontSize: 14,
+                            color: PdfColors.grey700,
+                          ),
+                        ),
                         pw.Text(
                           '${totalDonne.toStringAsFixed(2)} DH',
-                          style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.red600),
+                          style: pw.TextStyle(
+                            fontSize: 18,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.red600,
+                          ),
                         ),
                       ],
                     ),
                     pw.Column(
                       children: [
-                        pw.Text('Solde Actuel', style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey700)),
+                        pw.Text(
+                          currentBalanceStr,
+                          style: const pw.TextStyle(
+                            fontSize: 14,
+                            color: PdfColors.grey700,
+                          ),
+                        ),
                         pw.Text(
                           '${balance.toStringAsFixed(2)} DH',
-                          style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800),
+                          style: pw.TextStyle(
+                            fontSize: 18,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.blue800,
+                          ),
                         ),
                       ],
                     ),
@@ -119,21 +178,26 @@ class PersonDetailsScreen extends StatelessWidget {
               ),
               pw.SizedBox(height: 30),
               pw.Text(
-                'Historique des transactions:',
-                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                historyTitle,
+                style: pw.TextStyle(
+                  fontSize: 18,
+                  fontWeight: pw.FontWeight.bold,
+                ),
               ),
               pw.SizedBox(height: 10),
               pw.TableHelper.fromTextArray(
                 context: ctx,
-                headers: ['Date', 'Type', 'Note', 'Montant'],
-                data: transactions.map(
-                  (t) => [
-                    DateFormat('dd/MM/yyyy HH:mm').format(t.date),
-                    t.isReceived ? 'Reçu' : 'Donné',
-                    t.note,
-                    '${t.amount.toStringAsFixed(2)} DH',
-                  ],
-                ).toList(),
+                headers: [dateLabel, typeHeader, noteHeader, amountHeader],
+                data: transactions
+                    .map(
+                      (t) => [
+                        DateFormat('dd/MM/yyyy HH:mm').format(t.date),
+                        t.isReceived ? receivedStr : givenStr,
+                        t.note,
+                        '${t.amount.toStringAsFixed(2)} DH',
+                      ],
+                    )
+                    .toList(),
               ),
             ],
           );
@@ -141,10 +205,14 @@ class PersonDetailsScreen extends StatelessWidget {
       ),
     );
 
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name: 'Releve_${person.name}.pdf',
-    );
+    final bytes = await pdf.save();
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/Releve_${person.name}.pdf');
+    await file.writeAsBytes(bytes);
+
+    await Share.shareXFiles([
+      XFile(file.path),
+    ], text: 'Voici le relevé de compte de ${person.name}.');
   }
 
   Future<void> _launchUrl(String urlString) async {
@@ -174,6 +242,35 @@ class PersonDetailsScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
             onPressed: () => _generatePdf(context, transactions, balance),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: Text('confirm'.tr()),
+                  content: Text('delete_person_confirm'.tr()),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: Text('cancel'.tr()),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        creditProvider.deletePerson(person.id);
+                        Navigator.pop(ctx); // Close dialog
+                        Navigator.pop(context); // Go back to CarnetScreen
+                      },
+                      child: Text(
+                        'delete'.tr(),
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -336,9 +433,9 @@ class PersonDetailsScreen extends StatelessWidget {
                                   showDialog(
                                     context: context,
                                     builder: (ctx) => AlertDialog(
-                                      title: const Text('Confirmer'),
-                                      content: const Text(
-                                        'Voulez-vous supprimer cette transaction ?',
+                                      title: Text('confirm'.tr()),
+                                      content: Text(
+                                        'delete_transaction_confirm'.tr(),
                                       ),
                                       actions: [
                                         TextButton(
@@ -353,9 +450,9 @@ class PersonDetailsScreen extends StatelessWidget {
                                             ).deleteTransaction(t.id);
                                             Navigator.pop(ctx);
                                           },
-                                          child: const Text(
-                                            'Supprimer',
-                                            style: TextStyle(color: Colors.red),
+                                          child: Text(
+                                            'delete'.tr(),
+                                            style: const TextStyle(color: Colors.red),
                                           ),
                                         ),
                                       ],
@@ -364,13 +461,13 @@ class PersonDetailsScreen extends StatelessWidget {
                                 }
                               },
                               itemBuilder: (context) => [
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'edit',
-                                  child: Text('Modifier'),
+                                  child: Text('edit'.tr()),
                                 ),
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'delete',
-                                  child: Text('Supprimer'),
+                                  child: Text('delete'.tr()),
                                 ),
                               ],
                             ),

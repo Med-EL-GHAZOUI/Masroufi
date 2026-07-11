@@ -58,6 +58,7 @@ dependencies:
   easy_localization: ^3.0.8
   image_picker: ^1.2.3
   url_launcher: ^6.3.2
+  google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_test:

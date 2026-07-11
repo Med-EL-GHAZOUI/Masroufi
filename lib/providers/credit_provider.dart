@@ -28,6 +28,25 @@ class CreditProvider with ChangeNotifier {
     await loadData();
   }
 
+  Future<void> deletePerson(int id) async {
+    final isar = await dbService.isar;
+    await isar.writeTxn(() async {
+      // First, delete all transactions associated with this person
+      final relatedTransactions = await isar.creditTransactions
+          .filter()
+          .person((q) => q.idEqualTo(id))
+          .findAll();
+      
+      for (var t in relatedTransactions) {
+        await isar.creditTransactions.delete(t.id);
+      }
+      
+      // Then, delete the person
+      await isar.persons.delete(id);
+    });
+    await loadData();
+  }
+
   Future<void> addTransaction(CreditTransaction transaction) async {
     final isar = await dbService.isar;
     await isar.writeTxn(() async {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/finance_provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../models/goal.dart';
 
 class GoalsScreen extends StatelessWidget {
@@ -9,14 +10,30 @@ class GoalsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mes Objectifs'), centerTitle: true),
+      appBar: AppBar(title: Text('goals'.tr()), centerTitle: true),
       body: Consumer<FinanceProvider>(
         builder: (context, finance, child) {
           if (finance.goals.isEmpty) {
-            return const Center(
-              child: Text(
-                'Aucun objectif défini. Commencez à économiser !',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.track_changes, size: 80, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'no_goals_title'.tr(),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'no_goals_desc'.tr(),
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ],
               ),
             );
           }
@@ -29,61 +46,116 @@ class GoalsScreen extends StatelessWidget {
                 0.0,
                 1.0,
               );
-              return Card(
-                elevation: 4,
+              return Container(
                 margin: const EdgeInsets.only(bottom: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Theme.of(context).cardColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(20.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            goal.title,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).primaryColor.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.flag,
+                              color: Theme.of(context).primaryColor,
                             ),
                           ),
-                          Text(
-                            '${goal.currentAmount.toStringAsFixed(2)} / ${goal.targetAmount.toStringAsFixed(2)} MAD',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Theme.of(context).primaryColor,
-                              fontWeight: FontWeight.w600,
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  goal.title,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${'deadline'.tr()}: ${goal.deadline.day}/${goal.deadline.month}/${goal.deadline.year}',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
                             ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.add_circle_outline, color: Colors.green),
+                            onPressed: () => _showAddFundsDialog(context, goal, finance),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.red),
+                            onPressed: () => finance.deleteGoal(goal.id),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      LinearProgressIndicator(
-                        value: progress,
-                        backgroundColor: Colors.grey.shade200,
-                        color: Theme.of(context).primaryColor,
-                        minHeight: 8,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 24),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text(
-                            'Échéance: ${goal.deadline.day}/${goal.deadline.month}/${goal.deadline.year}',
-                            style: const TextStyle(
-                              color: Colors.grey,
-                              fontSize: 12,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${goal.currentAmount.toStringAsFixed(2)} DH',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                              ),
+                              Text(
+                                '${'target_amount'.tr()}: ${goal.targetAmount.toStringAsFixed(2)} DH',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                           Text(
                             '${(progress * 100).toStringAsFixed(1)}%',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 12),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          backgroundColor: Colors.grey.shade200,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Theme.of(context).primaryColor,
+                          ),
+                          minHeight: 10,
+                        ),
                       ),
                     ],
                   ),
@@ -111,22 +183,20 @@ class GoalsScreen extends StatelessWidget {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Nouvel Objectif'),
+              title: Text('new_goal'.tr()),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
                       controller: titleController,
-                      decoration: const InputDecoration(
-                        labelText: 'Titre de l\'objectif',
-                      ),
+                      decoration: InputDecoration(labelText: 'goal_title'.tr()),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: targetController,
-                      decoration: const InputDecoration(
-                        labelText: 'Montant cible (MAD)',
+                      decoration: InputDecoration(
+                        labelText: '${'target_amount'.tr()} (MAD)',
                       ),
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
@@ -137,8 +207,8 @@ class GoalsScreen extends StatelessWidget {
                       contentPadding: EdgeInsets.zero,
                       title: Text(
                         selectedDate == null
-                            ? 'Sélectionner une échéance'
-                            : 'Échéance: ${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}',
+                            ? 'select_deadline'.tr()
+                            : '${'deadline'.tr()}: ${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}',
                       ),
                       trailing: const Icon(Icons.calendar_today),
                       onTap: () async {
@@ -163,7 +233,7 @@ class GoalsScreen extends StatelessWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Annuler'),
+                  child: Text('cancel'.tr()),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -185,7 +255,7 @@ class GoalsScreen extends StatelessWidget {
                       }
                     }
                   },
-                  child: const Text('Ajouter'),
+                  child: Text('add'.tr()),
                 ),
               ],
             );
@@ -194,4 +264,42 @@ class GoalsScreen extends StatelessWidget {
       },
     );
   }
+
+  void _showAddFundsDialog(BuildContext context, SavingsGoal goal, FinanceProvider provider) {
+    final amountController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('add_amount'.tr()),
+          content: TextField(
+            controller: amountController,
+            decoration: InputDecoration(labelText: 'amount_dh'.tr()),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('cancel'.tr()),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final amount = double.tryParse(amountController.text);
+                if (amount != null && amount > 0) {
+                  final updatedGoal = goal.copyWith(
+                    currentAmount: goal.currentAmount + amount,
+                  );
+                  provider.updateGoal(updatedGoal);
+                  Navigator.pop(context);
+                }
+              },
+              child: Text('add'.tr()),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
+

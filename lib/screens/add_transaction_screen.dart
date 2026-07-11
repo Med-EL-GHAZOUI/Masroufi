@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:isar/isar.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/finance_provider.dart';
 import '../models/transaction.dart';
 
@@ -46,8 +47,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     if (_formKey.currentState!.validate()) {
       if (_selectedCategoryId == null || _selectedAccountId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Veuillez sélectionner une catégorie et un compte'),
+          SnackBar(
+            content: Text('select_category_account_error'.tr()),
           ),
         );
         return;
@@ -89,8 +90,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       appBar: AppBar(
         title: Text(
           widget.transactionToEdit != null
-              ? 'Modifier'
-              : 'Ajouter une Transaction',
+              ? 'edit_transaction'.tr()
+              : 'add_transaction'.tr(),
         ),
       ),
       body: SingleChildScrollView(
@@ -104,9 +105,18 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ChoiceChip(
-                    label: const Text('Dépense'),
+                    label: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Text('expense'.tr()),
+                    ),
                     selected: _isExpense,
                     selectedColor: Colors.red.withOpacity(0.2),
+                    backgroundColor: Colors.grey[200],
+                    labelStyle: TextStyle(
+                      color: _isExpense ? Colors.red[800] : Colors.black87,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     onSelected: (val) {
                       setState(() {
                         _isExpense = true;
@@ -116,9 +126,18 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   ),
                   const SizedBox(width: 16),
                   ChoiceChip(
-                    label: const Text('Revenu'),
+                    label: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Text('income'.tr()),
+                    ),
                     selected: !_isExpense,
                     selectedColor: Colors.green.withOpacity(0.2),
+                    backgroundColor: Colors.grey[200],
+                    labelStyle: TextStyle(
+                      color: !_isExpense ? Colors.green[800] : Colors.black87,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     onSelected: (val) {
                       setState(() {
                         _isExpense = false;
@@ -128,24 +147,29 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               TextFormField(
                 controller: _amountController,
-                decoration: const InputDecoration(
-                  labelText: 'Montant (DH)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.attach_money),
+                decoration: InputDecoration(
+                  labelText: 'amount_dh'.tr(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  prefixIcon: const Icon(Icons.attach_money),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un montant';
+                    return 'required_field'.tr();
                   }
                   if (double.tryParse(value) == null ||
                       double.parse(value) <= 0) {
-                    return 'Veuillez entrer un montant valide';
+                    return 'invalid_amount'.tr();
                   }
                   return null;
                 },
@@ -153,19 +177,29 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _noteController,
-                decoration: const InputDecoration(
-                  labelText: 'Note / Description',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.notes),
+                decoration: InputDecoration(
+                  labelText: 'note_description'.tr(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  prefixIcon: const Icon(Icons.notes),
                 ),
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
                 value: _selectedCategoryId,
-                decoration: const InputDecoration(
-                  labelText: 'Catégorie',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.category),
+                decoration: InputDecoration(
+                  labelText: 'category'.tr(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  prefixIcon: const Icon(Icons.category),
                 ),
                 items: categories.map((cat) {
                   return DropdownMenuItem<int>(
@@ -178,15 +212,20 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     _selectedCategoryId = val;
                   });
                 },
-                validator: (value) => value == null ? 'Requis' : null,
+                validator: (value) => value == null ? 'required_field'.tr() : null,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
                 value: _selectedAccountId,
-                decoration: const InputDecoration(
-                  labelText: 'Compte',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.account_balance_wallet),
+                decoration: InputDecoration(
+                  labelText: 'account'.tr(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  prefixIcon: const Icon(Icons.account_balance_wallet),
                 ),
                 items: accounts.map((acc) {
                   return DropdownMenuItem<int>(
@@ -199,17 +238,23 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     _selectedAccountId = val;
                   });
                 },
-                validator: (value) => value == null ? 'Requis' : null,
+                validator: (value) => value == null ? 'required_field'.tr() : null,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _submitData,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                  elevation: 2,
                 ),
-                child: const Text(
-                  'Enregistrer',
-                  style: TextStyle(fontSize: 18),
+                child: Text(
+                  'save'.tr(),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
             ],

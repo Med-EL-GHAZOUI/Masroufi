@@ -15,6 +15,30 @@ class OTPScreen extends StatefulWidget {
 class _OTPScreenState extends State<OTPScreen> {
   final _otpController = TextEditingController();
   bool _isLoading = false;
+  bool _isResending = false;
+
+  void _resendCode() async {
+    setState(() => _isResending = true);
+    final authService = Provider.of<AuthService>(context, listen: false);
+
+    await authService.verifyPhoneNumber(
+      widget.phoneNumber,
+      onCodeSent: (verificationId) {
+        if (!mounted) return;
+        setState(() => _isResending = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Un nouveau code a été envoyé')),
+        );
+      },
+      onError: (error) {
+        if (!mounted) return;
+        setState(() => _isResending = false);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error)));
+      },
+    );
+  }
 
   void _verifyOTP() async {
     final code = _otpController.text.trim();
@@ -87,6 +111,20 @@ class _OTPScreenState extends State<OTPScreen> {
               child: _isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
                   : const Text('Vérifier', style: TextStyle(fontSize: 18)),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: (_isLoading || _isResending) ? null : _resendCode,
+              child: _isResending
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text(
+                      'Renvoyer le code',
+                      style: TextStyle(fontSize: 16, color: Colors.blue),
+                    ),
             ),
           ],
         ),
