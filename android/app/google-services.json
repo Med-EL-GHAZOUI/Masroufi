@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "105677123744",
+    "project_id": "app-mobile-f0328",
+    "storage_bucket": "app-mobile-f0328.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:105677123744:android:a40e69d3e258b2ab7d19c5",
+        "android_client_info": {
+          "package_name": "com.masroufi.masroufi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-Mq3E-xPU_vPAaG2SxsUZ2CaUxQZpSWM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:105677123744:android:a0eac5f2ddc162e97d19c5",
+        "android_client_info": {
+          "package_name": "com.soulora.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-Mq3E-xPU_vPAaG2SxsUZ2CaUxQZpSWM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
