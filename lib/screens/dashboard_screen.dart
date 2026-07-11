@@ -40,7 +40,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: Text('app_title'.tr()),
         actions: [
-          IconButton(icon: const Icon(Icons.notifications), onPressed: () {}),
+
         ],
       ),
       drawer: Drawer(
@@ -188,24 +188,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 );
               },
             ),
-            const Divider(height: 1),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: Text(
-                'logout'.tr(),
-                style: const TextStyle(color: Colors.red),
-              ),
-              onTap: () async {
-                final auth = Provider.of<AuthService>(context, listen: false);
-                await auth.signOut();
-                if (context.mounted) {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const SplashScreen()),
-                    (route) => false,
-                  );
-                }
-              },
-            ),
+
             const SizedBox(height: 20),
           ],
         ),

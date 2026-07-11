@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'dashboard_screen.dart';
 import 'onboarding_screen.dart';
+import 'settings/pin_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -33,9 +34,27 @@ class _SplashScreenState extends State<SplashScreen> {
       return;
     }
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const DashboardScreen()),
-    );
+    final usePin = prefs.getBool('usePin') ?? false;
+
+    if (usePin) {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const PinScreen(isSettingPin: false, isVerifyingToChange: false)),
+      );
+      if (result == true) {
+        if (!context.mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        );
+      } else {
+        // If they cancelled or failed, they can't enter. Maybe show an error or loop.
+        // For now just stay on splash.
+      }
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+      );
+    }
   }
 
   @override

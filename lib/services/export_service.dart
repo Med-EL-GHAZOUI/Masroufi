@@ -7,7 +7,10 @@ import 'package:excel/excel.dart';
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/finance_provider.dart';
+import '../providers/credit_provider.dart';
+import '../models/person.dart';
 
 class ExportService {
   static Future<void> exportToPdf(FinanceProvider provider) async {
@@ -220,5 +223,131 @@ class ExportService {
     await Share.shareXFiles([
       XFile(file.path),
     ], text: 'Voici mon rapport financier Excel Masroufi.');
+  }
+
+  static Future<void> exportCarnetToPdf(
+    BuildContext context, 
+    CreditProvider provider, 
+    bool isClientView
+  ) async {
+    final pdf = pw.Document();
+
+    final fontData = await rootBundle.load('assets/fonts/Amiri-Regular.ttf');
+    final ttf = pw.Font.ttf(fontData);
+
+    final imageByteData = await rootBundle.load('assets/images/logo.jpeg');
+    final imageBytes = imageByteData.buffer.asUint8List();
+    final logoImage = pw.MemoryImage(imageBytes);
+
+    final String title = isClientView ? 'clients'.tr() : 'suppliers'.tr();
+    final String dateStr = 'date_of_statement'.tr(args: [DateFormat('dd/MM/yyyy').format(DateTime.now())]);
+    
+    // Filter persons
+    final persons = provider.persons.where((p) => p.isClient == isClientView).toList();
+    
+    // Calculate total balance
+    double totalBalance = 0;
+    for (var p in persons) {
+      totalBalance += provider.getPersonBalance(p.id);
+    }
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        theme: pw.ThemeData.withFont(base: ttf),
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'Masroufi - ${'carnet'.tr()}',
+                        style: pw.TextStyle(
+                          fontSize: 24,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.green800,
+                        ),
+                      ),
+                      pw.Text(
+                        title,
+                        style: pw.TextStyle(
+                          fontSize: 18,
+                          color: PdfColors.grey700,
+                        ),
+                      ),
+                      pw.SizedBox(height: 5),
+                      pw.Text(
+                        dateStr,
+                        style: const pw.TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
+                  pw.Image(logoImage, width: 60, height: 60),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+              // Total box
+              pw.Container(
+                padding: const pw.EdgeInsets.all(15),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.grey100,
+                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
+                  border: pw.Border.all(color: PdfColors.grey300),
+                ),
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(
+                      'total_balance'.tr(),
+                      style: const pw.TextStyle(fontSize: 16, color: PdfColors.grey700),
+                    ),
+                    pw.Text(
+                      '${totalBalance.toStringAsFixed(2)} DH',
+                      style: pw.TextStyle(
+                        fontSize: 20,
+                        fontWeight: pw.FontWeight.bold,
+                        color: totalBalance >= 0 ? PdfColors.green600 : PdfColors.red600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              pw.SizedBox(height: 20),
+              pw.TableHelper.fromTextArray(
+                context: context,
+                headers: [
+                  'name'.tr(), 
+                  'phone'.tr(), 
+                  'balance'.tr()
+                ],
+                data: persons.map((p) {
+                  final balance = provider.getPersonBalance(p.id);
+                  return [
+                    p.name,
+                    p.phone,
+                    '${balance.toStringAsFixed(2)} DH',
+                  ];
+                }).toList(),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    final bytes = await pdf.save();
+    final dir = await getApplicationDocumentsDirectory();
+    final fileName = isClientView ? 'Carnet_Clients.pdf' : 'Carnet_Fournisseurs.pdf';
+    final file = File('${dir.path}/$fileName');
+    await file.writeAsBytes(bytes);
+
+    await Share.shareXFiles([
+      XFile(file.path),
+    ], text: 'Voici le rapport du carnet ($title).');
   }
 }

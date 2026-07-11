@@ -24,32 +24,51 @@ class PersonDetailsScreen extends StatelessWidget {
     List<CreditTransaction> transactions,
     double balance,
   ) async {
-    final isArabic = context.locale.languageCode == 'ar';
+    try {
+      final fontData = await rootBundle.load('assets/fonts/Amiri-Regular.ttf');
+      final ttf = pw.Font.ttf(fontData);
 
-    final String title = '${'account_statement'.tr()} - ${person.name}';
-    final String phoneLabel = 'phone'.tr();
-    final String dateLabel = 'date'.tr();
-    final String totalReceivedStr = 'total_received'.tr();
-    final String totalGivenStr = 'total_given'.tr();
-    final String currentBalanceStr = 'current_balance'.tr();
-    final String historyTitle = '${'transaction_history'.tr()}:';
-    final String typeHeader = 'type'.tr();
-    final String noteHeader = 'note'.tr();
-    final String amountHeader = 'amount'.tr();
-    final String receivedStr = 'received'.tr();
-    final String givenStr = 'given'.tr();
+      final isArabic = context.locale.languageCode == 'ar';
+      final String phoneLabel = 'phone'.tr();
+      final String totalReceivedStr = 'total_received'.tr();
+      final String totalGivenStr = 'total_given'.tr();
 
-    final pdf = pw.Document();
+      final String title = 'account_statement'.tr(args: [person.name]);
+      final String dateStr = 'date_of_statement'.tr(args: [DateFormat('dd/MM/yyyy').format(DateTime.now())]);
+      final String balanceStr = 'balance'.tr();
+      final String currentBalanceStr = 'current_balance'.tr();
+      final String historyTitle = 'transactions_history'.tr();
+      
+      final String dateLabel = 'date'.tr();
+      final String typeHeader = 'type'.tr();
+      final String noteHeader = 'note'.tr();
+      final String amountHeader = 'amount_dh'.tr();
+      final String photoLabel = 'photo'.tr();
+      
+      final String receivedStr = 'received'.tr();
+      final String givenStr = 'given'.tr();
 
-    final imageByteData = await rootBundle.load('assets/images/logo.jpeg');
-    final imageBytes = imageByteData.buffer.asUint8List();
-    final logoImage = pw.MemoryImage(imageBytes);
+      // Pre-load images
+      final Map<int, pw.MemoryImage> loadedImages = {};
+      for (var t in transactions) {
+        if (t.photoPath != null && t.photoPath!.isNotEmpty) {
+          final file = File(t.photoPath!);
+          if (file.existsSync()) {
+            final bytes = await file.readAsBytes();
+            loadedImages[t.id] = pw.MemoryImage(bytes);
+          }
+        }
+      }
 
-    final font = isArabic ? await PdfGoogleFonts.cairoRegular() : null;
-    final boldFont = isArabic ? await PdfGoogleFonts.cairoBold() : null;
-    final textDirection = isArabic
-        ? pw.TextDirection.rtl
-        : pw.TextDirection.ltr;
+      final pdf = pw.Document();
+
+      final imageByteData = await rootBundle.load('assets/images/logo.jpeg');
+      final imageBytes = imageByteData.buffer.asUint8List();
+      final logoImage = pw.MemoryImage(imageBytes);
+
+      final textDirection = isArabic
+          ? pw.TextDirection.rtl
+          : pw.TextDirection.ltr;
 
     double totalDonne = 0;
     double totalRecu = 0;
@@ -61,14 +80,12 @@ class PersonDetailsScreen extends StatelessWidget {
       }
     }
 
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        textDirection: textDirection,
-        theme: font != null
-            ? pw.ThemeData.withFont(base: font, bold: boldFont)
-            : null,
-        build: (pw.Context ctx) {
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          textDirection: textDirection,
+          theme: pw.ThemeData.withFont(base: ttf, bold: ttf),
+          build: (pw.Context ctx) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
@@ -185,19 +202,44 @@ class PersonDetailsScreen extends StatelessWidget {
                 ),
               ),
               pw.SizedBox(height: 10),
-              pw.TableHelper.fromTextArray(
-                context: ctx,
-                headers: [dateLabel, typeHeader, noteHeader, amountHeader],
-                data: transactions
-                    .map(
-                      (t) => [
-                        DateFormat('dd/MM/yyyy HH:mm').format(t.date),
-                        t.isReceived ? receivedStr : givenStr,
-                        t.note,
-                        '${t.amount.toStringAsFixed(2)} DH',
+              pw.Table(
+                border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(2),
+                  1: const pw.FlexColumnWidth(1.5),
+                  2: const pw.FlexColumnWidth(3),
+                  3: const pw.FlexColumnWidth(2),
+                  4: const pw.FlexColumnWidth(1.5),
+                },
+                children: [
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                    children: [
+                      pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(dateLabel, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, font: ttf))),
+                      pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(typeHeader, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, font: ttf))),
+                      pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(noteHeader, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, font: ttf))),
+                      pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(amountHeader, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, font: ttf))),
+                      pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(photoLabel, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, font: ttf))),
+                    ],
+                  ),
+                  ...transactions.map((t) {
+                    return pw.TableRow(
+                      verticalAlignment: pw.TableCellVerticalAlignment.middle,
+                      children: [
+                        pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(DateFormat('dd/MM/yyyy HH:mm').format(t.date), style: pw.TextStyle(font: ttf))),
+                        pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(t.isReceived ? receivedStr : givenStr, style: pw.TextStyle(font: ttf))),
+                        pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(t.note, style: pw.TextStyle(font: ttf))),
+                        pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('${t.amount.toStringAsFixed(2)} DH', style: pw.TextStyle(font: ttf))),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(5), 
+                          child: (t.photoPath != null && loadedImages.containsKey(t.id)) 
+                            ? pw.Center(child: pw.Image(loadedImages[t.id]!, width: 40, height: 40, fit: pw.BoxFit.cover))
+                            : pw.Text('', style: pw.TextStyle(font: ttf))
+                        ),
                       ],
-                    )
-                    .toList(),
+                    );
+                  }),
+                ],
               ),
             ],
           );
@@ -205,14 +247,22 @@ class PersonDetailsScreen extends StatelessWidget {
       ),
     );
 
-    final bytes = await pdf.save();
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/Releve_${person.name}.pdf');
-    await file.writeAsBytes(bytes);
+      final bytes = await pdf.save();
+      final dir = await getApplicationDocumentsDirectory();
+      final sanitizedName = person.name.replaceAll(RegExp(r'[^\w\s]+'), '').trim();
+      final file = File('${dir.path}/Releve_$sanitizedName.pdf');
+      await file.writeAsBytes(bytes);
 
-    await Share.shareXFiles([
-      XFile(file.path),
-    ], text: 'Voici le relevé de compte de ${person.name}.');
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: 'Voici le relevé de ${person.name}.');
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de la création du PDF: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _launchUrl(String urlString) async {

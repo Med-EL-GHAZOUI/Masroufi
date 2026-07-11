@@ -107,5 +107,8 @@
   "required_field": "حقل مطلوب",
   "save": "حفظ",
   "view_photo": "عرض الصورة",
-  "add_amount": "إضافة مبلغ"
+  "add_amount": "إضافة مبلغ",
+  "developed_by": "تم التطوير بواسطة",
+  "rights_reserved": "© 2026 جميع الحقوق محفوظة.",
+  "photo": "صورة"
 }

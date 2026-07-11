@@ -105,5 +105,8 @@
   "required_field": "Required field",
   "save": "Save",
   "view_photo": "View Photo",
-  "add_amount": "Add Amount"
+  "add_amount": "Add Amount",
+  "developed_by": "Developed by",
+  "rights_reserved": "© 2026 All rights reserved.",
+  "photo": "Photo/Receipt"
 }

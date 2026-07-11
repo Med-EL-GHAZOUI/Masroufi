@@ -107,5 +107,8 @@
   "required_field": "Champ obligatoire",
   "save": "Enregistrer",
   "view_photo": "Voir la photo",
-  "add_amount": "Ajouter un montant"
+  "add_amount": "Ajouter un montant",
+  "developed_by": "Développé par",
+  "rights_reserved": "© 2026 Tous droits réservés.",
+  "photo": "Photo/Reçu"
 }

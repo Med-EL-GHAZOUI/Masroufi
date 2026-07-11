@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../providers/credit_provider.dart';
+import '../services/export_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'add_person_screen.dart';
 import 'person_details_screen.dart';
 
@@ -76,7 +78,9 @@ class _CarnetScreenState extends State<CarnetScreen> {
                           Icons.picture_as_pdf,
                           color: Colors.blue,
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          ExportService.exportCarnetToPdf(context, creditProvider, _isClientView);
+                        },
                       ),
                       Text(
                         'reports'.tr(),
@@ -92,7 +96,9 @@ class _CarnetScreenState extends State<CarnetScreen> {
                           Icons.notifications_active,
                           color: Colors.orange,
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          _showPaymentReminders(context, creditProvider);
+                        },
                       ),
                       Text(
                         'payment_reminder'.tr(),
@@ -167,7 +173,7 @@ class _CarnetScreenState extends State<CarnetScreen> {
                 // Let's just show it.
                 return ListTile(
                   leading: CircleAvatar(
-                    child: Text(person.name[0].toUpperCase()),
+                    child: Text(person.name.isNotEmpty ? person.name[0].toUpperCase() : '?'),
                   ),
                   title: Text(person.name),
                   subtitle: Text(person.phone ?? ''),
@@ -204,6 +210,71 @@ class _CarnetScreenState extends State<CarnetScreen> {
         icon: const Icon(Icons.person_add),
         label: Text(_isClientView ? 'add_client'.tr() : 'add_supplier'.tr()),
       ),
+    );
+  }
+
+  Future<void> _showPaymentReminders(BuildContext context, CreditProvider provider) async {
+    final debtors = provider.persons.where((p) {
+      if (p.isClient != _isClientView) return false;
+      final balance = provider.getPersonBalance(p.id);
+      return balance != 0;
+    }).toList();
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        if (debtors.isEmpty) {
+          return Container(
+            height: 200,
+            alignment: Alignment.center,
+            child: Text('no_data'.tr(), style: const TextStyle(fontSize: 18, color: Colors.grey)),
+          );
+        }
+        return Column(
+          children: [
+            const SizedBox(height: 16),
+            Text('payment_reminder'.tr(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Divider(),
+            Expanded(
+              child: ListView.builder(
+                itemCount: debtors.length,
+                itemBuilder: (context, index) {
+                  final person = debtors[index];
+                  final balance = provider.getPersonBalance(person.id);
+                  return ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: Colors.orange,
+                      child: Icon(Icons.person, color: Colors.white),
+                    ),
+                    title: Text(person.name),
+                    subtitle: Text('${balance.toStringAsFixed(2)} DH', style: const TextStyle(color: Colors.red)),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.send, color: Colors.green),
+                      onPressed: () async {
+                        final String message = "Bonjour ${person.name},\nCeci est un rappel amical concernant votre solde de ${balance.abs().toStringAsFixed(2)} DH. Merci d'avance !";
+                        final String encodedMessage = Uri.encodeComponent(message);
+                        final String url = "https://wa.me/${person.phone}?text=$encodedMessage";
+                        
+                        final Uri uri = Uri.parse(url);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        } else {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Impossible d\'ouvrir WhatsApp.')),
+                            );
+                          }
+                        }
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
