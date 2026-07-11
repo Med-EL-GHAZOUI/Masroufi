@@ -122,7 +122,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
       body: _pages[_selectedIndex],
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: _selectedIndex == 4 ? null : FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
