@@ -50,7 +50,7 @@ class AboutScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'v1.0.0',
+                'v1.0',
                 style: TextStyle(
                   fontSize: 18,
                   color: Colors.grey[600],
@@ -77,7 +77,7 @@ class AboutScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       const Text(
-                        'Mohamed EL-GHAZOUI',
+                        'Mohamed EL GHAZOUI',
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,

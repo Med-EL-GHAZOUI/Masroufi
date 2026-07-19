@@ -73,12 +73,24 @@ class CreditProvider with ChangeNotifier {
     await loadData();
   }
 
+  Future<void> archiveTransaction(int id, bool archive) async {
+    final isar = await dbService.isar;
+    final txn = await isar.creditTransactions.get(id);
+    if (txn != null) {
+      txn.isArchived = archive;
+      await isar.writeTxn(() async {
+        await isar.creditTransactions.put(txn);
+      });
+      await loadData();
+    }
+  }
+
   double getTotalGiven(bool isClient) {
     // لي عطيت
     double total = 0;
     for (var p in _persons.where((p) => p.isClient == isClient)) {
       final txns = _transactions.where(
-        (t) => t.person.value?.id == p.id && !t.isReceived,
+        (t) => t.person.value?.id == p.id && !t.isReceived && !t.isArchived,
       );
       for (var t in txns) {
         total += t.amount;
@@ -92,7 +104,7 @@ class CreditProvider with ChangeNotifier {
     double total = 0;
     for (var p in _persons.where((p) => p.isClient == isClient)) {
       final txns = _transactions.where(
-        (t) => t.person.value?.id == p.id && t.isReceived,
+        (t) => t.person.value?.id == p.id && t.isReceived && !t.isArchived,
       );
       for (var t in txns) {
         total += t.amount;
@@ -106,7 +118,7 @@ class CreditProvider with ChangeNotifier {
     // If received > given, balance is positive, etc.
     double received = 0;
     double given = 0;
-    final txns = _transactions.where((t) => t.person.value?.id == personId);
+    final txns = _transactions.where((t) => t.person.value?.id == personId && !t.isArchived);
     for (var t in txns) {
       if (t.isReceived) {
         received += t.amount;

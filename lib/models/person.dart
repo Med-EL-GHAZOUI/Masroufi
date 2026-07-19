@@ -8,6 +8,9 @@ class Person {
 
   late String name;
   String? phone;
+  String? address;
+  String? email;
+  String? note;
 
   // true for client (الكليان), false for supplier (الفورنيسور)
   late bool isClient;

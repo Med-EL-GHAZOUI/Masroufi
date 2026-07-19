@@ -18,5 +18,7 @@ class CreditTransaction {
 
   String? photoPath;
 
+  bool isArchived = false;
+
   DateTime date = DateTime.now();
 }

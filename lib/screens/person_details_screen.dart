@@ -14,10 +14,17 @@ import '../models/credit_transaction.dart';
 import '../providers/credit_provider.dart';
 import 'add_credit_transaction_screen.dart';
 
-class PersonDetailsScreen extends StatelessWidget {
+class PersonDetailsScreen extends StatefulWidget {
   final Person person;
 
   const PersonDetailsScreen({super.key, required this.person});
+
+  @override
+  State<PersonDetailsScreen> createState() => _PersonDetailsScreenState();
+}
+
+class _PersonDetailsScreenState extends State<PersonDetailsScreen> {
+  bool _showArchived = false;
 
   Future<void> _generatePdf(
     BuildContext context,
@@ -33,7 +40,7 @@ class PersonDetailsScreen extends StatelessWidget {
       final String totalReceivedStr = 'total_received'.tr();
       final String totalGivenStr = 'total_given'.tr();
 
-      final String title = 'account_statement'.tr(args: [person.name]);
+      final String title = 'account_statement'.tr(args: [widget.person.name]);
       final String dateStr = 'date_of_statement'.tr(args: [DateFormat('dd/MM/yyyy').format(DateTime.now())]);
       final String balanceStr = 'balance'.tr();
       final String currentBalanceStr = 'current_balance'.tr();
@@ -112,7 +119,7 @@ class PersonDetailsScreen extends StatelessWidget {
                       ),
                       pw.SizedBox(height: 5),
                       pw.Text(
-                        '$phoneLabel : ${person.phone ?? "--"}  |  $dateLabel : ${DateTime.now().toString().substring(0, 10)}',
+                        '$phoneLabel : ${widget.person.phone ?? "--"}  |  $dateLabel : ${DateTime.now().toString().substring(0, 10)}',
                         style: const pw.TextStyle(fontSize: 14),
                       ),
                     ],
@@ -249,13 +256,13 @@ class PersonDetailsScreen extends StatelessWidget {
 
       final bytes = await pdf.save();
       final dir = await getApplicationDocumentsDirectory();
-      final sanitizedName = person.name.replaceAll(RegExp(r'[^\w\s]+'), '').trim();
+      final sanitizedName = widget.person.name.replaceAll(RegExp(r'[^\w\s]+'), '').trim();
       final file = File('${dir.path}/Releve_$sanitizedName.pdf');
       await file.writeAsBytes(bytes);
 
       await Share.shareXFiles([
         XFile(file.path),
-      ], text: 'Voici le relevé de ${person.name}.');
+      ], text: 'Voici le relevé de ${widget.person.name}.');
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -277,18 +284,31 @@ class PersonDetailsScreen extends StatelessWidget {
     final creditProvider = Provider.of<CreditProvider>(context);
 
     // Transactions sorted by date descending
-    final transactions =
+    final allTransactions =
         creditProvider.transactions
-            .where((t) => t.person.value?.id == person.id)
+            .where((t) => t.person.value?.id == widget.person.id)
             .toList()
           ..sort((a, b) => b.date.compareTo(a.date));
 
-    final balance = creditProvider.getPersonBalance(person.id);
+    final transactions = allTransactions.where((t) => _showArchived ? true : !t.isArchived).toList();
+
+    final balance = creditProvider.getPersonBalance(widget.person.id);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(person.name),
+        title: Text(widget.person.name),
         actions: [
+          IconButton(
+            icon: Icon(
+              _showArchived ? Icons.archive : Icons.archive_outlined,
+              color: _showArchived ? Colors.orange : null,
+            ),
+            onPressed: () {
+              setState(() {
+                _showArchived = !_showArchived;
+              });
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
             onPressed: () => _generatePdf(context, transactions, balance),
@@ -300,15 +320,15 @@ class PersonDetailsScreen extends StatelessWidget {
                 context: context,
                 builder: (ctx) => AlertDialog(
                   title: Text('confirm'.tr()),
-                  content: Text('delete_person_confirm'.tr()),
+                  content: Text('delete_person_confirm'.tr(args: [widget.person.name])),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
                       child: Text('cancel'.tr()),
                     ),
                     TextButton(
-                      onPressed: () {
-                        creditProvider.deletePerson(person.id);
+                      onPressed: () async {
+                        await creditProvider.deletePerson(widget.person.id);
                         Navigator.pop(ctx); // Close dialog
                         Navigator.pop(context); // Go back to CarnetScreen
                       },
@@ -330,65 +350,115 @@ class PersonDetailsScreen extends StatelessWidget {
             margin: const EdgeInsets.all(16),
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'phone'.tr(),
-                        style: const TextStyle(color: Colors.grey),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'phone'.tr(),
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                          Text(
+                            widget.person.phone ?? '--',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          if (widget.person.phone != null && widget.person.phone!.isNotEmpty)
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.phone, color: Colors.blue),
+                                  onPressed: () =>
+                                      _launchUrl('tel:${widget.person.phone}'),
+                                  tooltip: 'Appeler',
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.message,
+                                    color: Colors.orange,
+                                  ),
+                                  onPressed: () =>
+                                      _launchUrl('sms:${widget.person.phone}'),
+                                  tooltip: 'SMS',
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.chat, color: Colors.green),
+                                  onPressed: () =>
+                                      _launchUrl('https://wa.me/${widget.person.phone}'),
+                                  tooltip: 'WhatsApp',
+                                ),
+                              ],
+                            ),
+                        ],
                       ),
-                      Text(
-                        person.phone ?? '--',
-                        style: const TextStyle(fontSize: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            'amount'.tr(),
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                          Text(
+                            '${balance.toStringAsFixed(2)} DH',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: balance >= 0 ? Colors.green : Colors.red,
+                            ),
+                          ),
+                        ],
                       ),
-                      if (person.phone != null && person.phone!.isNotEmpty)
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.phone, color: Colors.blue),
-                              onPressed: () =>
-                                  _launchUrl('tel:${person.phone}'),
-                              tooltip: 'Appeler',
-                            ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.message,
-                                color: Colors.orange,
-                              ),
-                              onPressed: () =>
-                                  _launchUrl('sms:${person.phone}'),
-                              tooltip: 'SMS',
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.chat, color: Colors.green),
-                              onPressed: () =>
-                                  _launchUrl('https://wa.me/${person.phone}'),
-                              tooltip: 'WhatsApp',
-                            ),
-                          ],
-                        ),
                     ],
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'amount'.tr(),
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                      Text(
-                        '${balance.toStringAsFixed(2)} DH',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: balance >= 0 ? Colors.green : Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
+                  if (widget.person.address != null && widget.person.address!.isNotEmpty) ...[
+                    const Divider(),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on, size: 20, color: Colors.grey),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(widget.person.address!, style: const TextStyle(fontSize: 15))),
+                        IconButton(
+                          icon: const Icon(Icons.map, color: Colors.blue),
+                          onPressed: () => _launchUrl('https://maps.google.com/?q=${Uri.encodeComponent(widget.person.address!)}'),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          tooltip: 'Ouvrir Maps',
+                        )
+                      ],
+                    ),
+                  ],
+                  if (widget.person.email != null && widget.person.email!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.email, size: 20, color: Colors.grey),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(widget.person.email!, style: const TextStyle(fontSize: 15))),
+                        IconButton(
+                          icon: const Icon(Icons.send, color: Colors.blue),
+                          onPressed: () => _launchUrl('mailto:${widget.person.email}'),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          tooltip: 'Envoyer Email',
+                        )
+                      ],
+                    ),
+                  ],
+                  if (widget.person.note != null && widget.person.note!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.notes, size: 20, color: Colors.grey),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(widget.person.note!, style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 15))),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -401,27 +471,40 @@ class PersonDetailsScreen extends StatelessWidget {
                     itemCount: transactions.length,
                     itemBuilder: (context, index) {
                       final t = transactions[index];
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: t.isReceived
-                              ? Colors.green.withOpacity(0.1)
-                              : Colors.red.withOpacity(0.1),
-                          child: Icon(
-                            t.isReceived
-                                ? Icons.arrow_downward
-                                : Icons.arrow_upward,
-                            color: t.isReceived ? Colors.green : Colors.red,
+                      return Opacity(
+                        opacity: t.isArchived ? 0.5 : 1.0,
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: t.isReceived
+                                ? Colors.green.withOpacity(0.1)
+                                : Colors.red.withOpacity(0.1),
+                            child: Icon(
+                              t.isReceived
+                                  ? Icons.arrow_downward
+                                  : Icons.arrow_upward,
+                              color: t.isReceived ? Colors.green : Colors.red,
+                            ),
                           ),
-                        ),
-                        title: Text(
-                          t.note.isNotEmpty
-                              ? t.note
-                              : (t.isReceived ? 'received'.tr() : 'given'.tr()),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(DateFormat('dd/MM/yyyy HH:mm').format(t.date)),
+                          title: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  t.note.isNotEmpty
+                                      ? t.note
+                                      : (t.isReceived ? 'received'.tr() : 'given'.tr()),
+                                ),
+                              ),
+                              if (t.isArchived)
+                                const Text(
+                                  ' (Archivé)',
+                                  style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+                                ),
+                            ],
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(DateFormat('dd/MM/yyyy HH:mm').format(t.date)),
                             if (t.photoPath != null)
                               Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
@@ -474,11 +557,13 @@ class PersonDetailsScreen extends StatelessWidget {
                                     MaterialPageRoute(
                                       builder: (_) =>
                                           AddCreditTransactionScreen(
-                                            person: person,
+                                            person: widget.person,
                                             transaction: t,
                                           ),
                                     ),
                                   );
+                                } else if (value == 'archive') {
+                                  creditProvider.archiveTransaction(t.id, !t.isArchived);
                                 } else if (value == 'delete') {
                                   showDialog(
                                     context: context,
@@ -516,6 +601,10 @@ class PersonDetailsScreen extends StatelessWidget {
                                   child: Text('edit'.tr()),
                                 ),
                                 PopupMenuItem(
+                                  value: 'archive',
+                                  child: Text(t.isArchived ? 'Désarchiver' : 'Archiver'),
+                                ),
+                                PopupMenuItem(
                                   value: 'delete',
                                   child: Text('delete'.tr()),
                                 ),
@@ -523,8 +612,9 @@ class PersonDetailsScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                      );
-                    },
+                      ),
+                    );
+                  },
                   ),
           ),
         ],
@@ -534,7 +624,7 @@ class PersonDetailsScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => AddCreditTransactionScreen(person: person),
+              builder: (_) => AddCreditTransactionScreen(person: widget.person),
             ),
           );
         },

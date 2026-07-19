@@ -11,6 +11,10 @@
   "add_supplier": "إضافة فورنيسور",
   "name": "الاسم",
   "phone": "رقم الهاتف",
+  "address": "العنوان",
+  "email": "البريد الإلكتروني",
+  "note": "ملاحظة",
+  "optional": "(اختياري)",
   "save": "حفظ",
   "cancel": "إلغاء",
   "amount": "المبلغ",
@@ -110,5 +114,15 @@
   "add_amount": "إضافة مبلغ",
   "developed_by": "تم التطوير بواسطة",
   "rights_reserved": "© 2026 جميع الحقوق محفوظة.",
-  "photo": "صورة"
+  "photo": "صورة",
+  "Alimentation": "التغذية",
+  "Transport": "النقل",
+  "Shopping": "التسوق",
+  "Santé": "الصحة",
+  "Éducation": "التعليم",
+  "Loisirs": "الترفيه",
+  "Factures": "الفواتير",
+  "Voyage": "السفر",
+  "Espèces": "نقداً",
+  "Banque": "بنك"
 }

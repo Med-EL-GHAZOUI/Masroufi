@@ -17,6 +17,7 @@ class TransactionModel {
   String? receiptPath;
   DateTime updatedAt = DateTime.now();
   bool isSynced = false;
+  bool isArchived = false;
 
   TransactionModel({
     this.id = Isar.autoIncrement,
@@ -27,6 +28,7 @@ class TransactionModel {
     required this.accountId,
     required this.isExpense,
     this.receiptPath,
+    this.isArchived = false,
   });
 
   Map<String, dynamic> toMap() {

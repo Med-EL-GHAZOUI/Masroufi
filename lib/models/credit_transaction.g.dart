@@ -17,19 +17,36 @@ const CreditTransactionSchema = CollectionSchema(
   name: r'CreditTransaction',
   id: 7212311058843022655,
   properties: {
-    r'amount': PropertySchema(id: 0, name: r'amount', type: IsarType.double),
-    r'date': PropertySchema(id: 1, name: r'date', type: IsarType.dateTime),
-    r'isReceived': PropertySchema(
+    r'amount': PropertySchema(
+      id: 0,
+      name: r'amount',
+      type: IsarType.double,
+    ),
+    r'date': PropertySchema(
+      id: 1,
+      name: r'date',
+      type: IsarType.dateTime,
+    ),
+    r'isArchived': PropertySchema(
       id: 2,
+      name: r'isArchived',
+      type: IsarType.bool,
+    ),
+    r'isReceived': PropertySchema(
+      id: 3,
       name: r'isReceived',
       type: IsarType.bool,
     ),
-    r'note': PropertySchema(id: 3, name: r'note', type: IsarType.string),
-    r'photoPath': PropertySchema(
+    r'note': PropertySchema(
       id: 4,
-      name: r'photoPath',
+      name: r'note',
       type: IsarType.string,
     ),
+    r'photoPath': PropertySchema(
+      id: 5,
+      name: r'photoPath',
+      type: IsarType.string,
+    )
   },
   estimateSize: _creditTransactionEstimateSize,
   serialize: _creditTransactionSerialize,
@@ -43,7 +60,7 @@ const CreditTransactionSchema = CollectionSchema(
       name: r'person',
       target: r'Person',
       single: true,
-    ),
+    )
   },
   embeddedSchemas: {},
   getId: _creditTransactionGetId,
@@ -76,9 +93,10 @@ void _creditTransactionSerialize(
 ) {
   writer.writeDouble(offsets[0], object.amount);
   writer.writeDateTime(offsets[1], object.date);
-  writer.writeBool(offsets[2], object.isReceived);
-  writer.writeString(offsets[3], object.note);
-  writer.writeString(offsets[4], object.photoPath);
+  writer.writeBool(offsets[2], object.isArchived);
+  writer.writeBool(offsets[3], object.isReceived);
+  writer.writeString(offsets[4], object.note);
+  writer.writeString(offsets[5], object.photoPath);
 }
 
 CreditTransaction _creditTransactionDeserialize(
@@ -91,9 +109,10 @@ CreditTransaction _creditTransactionDeserialize(
   object.amount = reader.readDouble(offsets[0]);
   object.date = reader.readDateTime(offsets[1]);
   object.id = id;
-  object.isReceived = reader.readBool(offsets[2]);
-  object.note = reader.readString(offsets[3]);
-  object.photoPath = reader.readStringOrNull(offsets[4]);
+  object.isArchived = reader.readBool(offsets[2]);
+  object.isReceived = reader.readBool(offsets[3]);
+  object.note = reader.readString(offsets[4]);
+  object.photoPath = reader.readStringOrNull(offsets[5]);
   return object;
 }
 
@@ -111,8 +130,10 @@ P _creditTransactionDeserializeProp<P>(
     case 2:
       return (reader.readBool(offset)) as P;
     case 3:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 4:
+      return (reader.readString(offset)) as P;
+    case 5:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -124,16 +145,12 @@ Id _creditTransactionGetId(CreditTransaction object) {
 }
 
 List<IsarLinkBase<dynamic>> _creditTransactionGetLinks(
-  CreditTransaction object,
-) {
+    CreditTransaction object) {
   return [object.person];
 }
 
 void _creditTransactionAttach(
-  IsarCollection<dynamic> col,
-  Id id,
-  CreditTransaction object,
-) {
+    IsarCollection<dynamic> col, Id id, CreditTransaction object) {
   object.id = id;
   object.person.attach(col, col.isar.collection<Person>(), r'person', id);
 }
@@ -150,14 +167,17 @@ extension CreditTransactionQueryWhereSort
 extension CreditTransactionQueryWhere
     on QueryBuilder<CreditTransaction, CreditTransaction, QWhereClause> {
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterWhereClause>
-  idEqualTo(Id id) {
+      idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
+      return query.addWhereClause(IdWhereClause.between(
+        lower: id,
+        upper: id,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterWhereClause>
-  idNotEqualTo(Id id) {
+      idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -180,7 +200,7 @@ extension CreditTransactionQueryWhere
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterWhereClause>
-  idGreaterThan(Id id, {bool include = false}) {
+      idGreaterThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -189,7 +209,7 @@ extension CreditTransactionQueryWhere
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterWhereClause>
-  idLessThan(Id id, {bool include = false}) {
+      idLessThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -198,21 +218,19 @@ extension CreditTransactionQueryWhere
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterWhereClause>
-  idBetween(
+      idBetween(
     Id lowerId,
     Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.between(
-          lower: lowerId,
-          includeLower: includeLower,
-          upper: upperId,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -220,56 +238,53 @@ extension CreditTransactionQueryWhere
 extension CreditTransactionQueryFilter
     on QueryBuilder<CreditTransaction, CreditTransaction, QFilterCondition> {
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  amountEqualTo(double value, {double epsilon = Query.epsilon}) {
+      amountEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'amount',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'amount',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  amountGreaterThan(
+      amountGreaterThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'amount',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'amount',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  amountLessThan(
+      amountLessThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'amount',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'amount',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  amountBetween(
+      amountBetween(
     double lower,
     double upper, {
     bool includeLower = true,
@@ -277,189 +292,197 @@ extension CreditTransactionQueryFilter
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'amount',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'amount',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  dateEqualTo(DateTime value) {
+      dateEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'date', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'date',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  dateGreaterThan(DateTime value, {bool include = false}) {
+      dateGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'date',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'date',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  dateLessThan(DateTime value, {bool include = false}) {
+      dateLessThan(
+    DateTime value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'date',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'date',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  dateBetween(
+      dateBetween(
     DateTime lower,
     DateTime upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'date',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'date',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  idEqualTo(Id value) {
+      idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'id', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  idGreaterThan(Id value, {bool include = false}) {
+      idGreaterThan(
+    Id value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  idLessThan(Id value, {bool include = false}) {
+      idLessThan(
+    Id value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  idBetween(
+      idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'id',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  isReceivedEqualTo(bool value) {
+      isArchivedEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'isReceived', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isArchived',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  noteEqualTo(String value, {bool caseSensitive = true}) {
+      isReceivedEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'note',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isReceived',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  noteGreaterThan(
+      noteEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
+      noteGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'note',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  noteLessThan(
+      noteLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'note',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  noteBetween(
+      noteBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -467,158 +490,153 @@ extension CreditTransactionQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'note',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'note',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  noteStartsWith(String value, {bool caseSensitive = true}) {
+      noteStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'note',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  noteEndsWith(String value, {bool caseSensitive = true}) {
+      noteEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'note',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  noteContains(String value, {bool caseSensitive = true}) {
+      noteContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'note',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  noteMatches(String pattern, {bool caseSensitive = true}) {
+      noteMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'note',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'note',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  noteIsEmpty() {
+      noteIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'note', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'note',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  noteIsNotEmpty() {
+      noteIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'note', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'note',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  photoPathIsNull() {
+      photoPathIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'photoPath'),
-      );
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'photoPath',
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  photoPathIsNotNull() {
+      photoPathIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'photoPath'),
-      );
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'photoPath',
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  photoPathEqualTo(String? value, {bool caseSensitive = true}) {
+      photoPathEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'photoPath',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'photoPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  photoPathGreaterThan(
+      photoPathGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'photoPath',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'photoPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  photoPathLessThan(
+      photoPathLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'photoPath',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'photoPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  photoPathBetween(
+      photoPathBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -626,86 +644,84 @@ extension CreditTransactionQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'photoPath',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'photoPath',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  photoPathStartsWith(String value, {bool caseSensitive = true}) {
+      photoPathStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'photoPath',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'photoPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  photoPathEndsWith(String value, {bool caseSensitive = true}) {
+      photoPathEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'photoPath',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'photoPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  photoPathContains(String value, {bool caseSensitive = true}) {
+      photoPathContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'photoPath',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'photoPath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  photoPathMatches(String pattern, {bool caseSensitive = true}) {
+      photoPathMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'photoPath',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'photoPath',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  photoPathIsEmpty() {
+      photoPathIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'photoPath', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'photoPath',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  photoPathIsNotEmpty() {
+      photoPathIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'photoPath', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'photoPath',
+        value: '',
+      ));
     });
   }
 }
@@ -716,14 +732,14 @@ extension CreditTransactionQueryObject
 extension CreditTransactionQueryLinks
     on QueryBuilder<CreditTransaction, CreditTransaction, QFilterCondition> {
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  person(FilterQuery<Person> q) {
+      person(FilterQuery<Person> q) {
     return QueryBuilder.apply(this, (query) {
       return query.link(q, r'person');
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterFilterCondition>
-  personIsNull() {
+      personIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'person', 0, true, 0, true);
     });
@@ -733,70 +749,84 @@ extension CreditTransactionQueryLinks
 extension CreditTransactionQuerySortBy
     on QueryBuilder<CreditTransaction, CreditTransaction, QSortBy> {
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  sortByAmount() {
+      sortByAmount() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'amount', Sort.asc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  sortByAmountDesc() {
+      sortByAmountDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'amount', Sort.desc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  sortByDate() {
+      sortByDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'date', Sort.asc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  sortByDateDesc() {
+      sortByDateDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'date', Sort.desc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  sortByIsReceived() {
+      sortByIsArchived() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isArchived', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
+      sortByIsArchivedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isArchived', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
+      sortByIsReceived() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isReceived', Sort.asc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  sortByIsReceivedDesc() {
+      sortByIsReceivedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isReceived', Sort.desc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  sortByNote() {
+      sortByNote() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'note', Sort.asc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  sortByNoteDesc() {
+      sortByNoteDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'note', Sort.desc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  sortByPhotoPath() {
+      sortByPhotoPath() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'photoPath', Sort.asc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  sortByPhotoPathDesc() {
+      sortByPhotoPathDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'photoPath', Sort.desc);
     });
@@ -806,28 +836,28 @@ extension CreditTransactionQuerySortBy
 extension CreditTransactionQuerySortThenBy
     on QueryBuilder<CreditTransaction, CreditTransaction, QSortThenBy> {
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  thenByAmount() {
+      thenByAmount() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'amount', Sort.asc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  thenByAmountDesc() {
+      thenByAmountDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'amount', Sort.desc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  thenByDate() {
+      thenByDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'date', Sort.asc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  thenByDateDesc() {
+      thenByDateDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'date', Sort.desc);
     });
@@ -840,49 +870,63 @@ extension CreditTransactionQuerySortThenBy
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  thenByIdDesc() {
+      thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  thenByIsReceived() {
+      thenByIsArchived() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isArchived', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
+      thenByIsArchivedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isArchived', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
+      thenByIsReceived() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isReceived', Sort.asc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  thenByIsReceivedDesc() {
+      thenByIsReceivedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isReceived', Sort.desc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  thenByNote() {
+      thenByNote() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'note', Sort.asc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  thenByNoteDesc() {
+      thenByNoteDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'note', Sort.desc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  thenByPhotoPath() {
+      thenByPhotoPath() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'photoPath', Sort.asc);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QAfterSortBy>
-  thenByPhotoPathDesc() {
+      thenByPhotoPathDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'photoPath', Sort.desc);
     });
@@ -892,36 +936,42 @@ extension CreditTransactionQuerySortThenBy
 extension CreditTransactionQueryWhereDistinct
     on QueryBuilder<CreditTransaction, CreditTransaction, QDistinct> {
   QueryBuilder<CreditTransaction, CreditTransaction, QDistinct>
-  distinctByAmount() {
+      distinctByAmount() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'amount');
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QDistinct>
-  distinctByDate() {
+      distinctByDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'date');
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QDistinct>
-  distinctByIsReceived() {
+      distinctByIsArchived() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isArchived');
+    });
+  }
+
+  QueryBuilder<CreditTransaction, CreditTransaction, QDistinct>
+      distinctByIsReceived() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isReceived');
     });
   }
 
-  QueryBuilder<CreditTransaction, CreditTransaction, QDistinct> distinctByNote({
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<CreditTransaction, CreditTransaction, QDistinct> distinctByNote(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'note', caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<CreditTransaction, CreditTransaction, QDistinct>
-  distinctByPhotoPath({bool caseSensitive = true}) {
+      distinctByPhotoPath({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'photoPath', caseSensitive: caseSensitive);
     });
@@ -948,6 +998,12 @@ extension CreditTransactionQueryProperty
     });
   }
 
+  QueryBuilder<CreditTransaction, bool, QQueryOperations> isArchivedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isArchived');
+    });
+  }
+
   QueryBuilder<CreditTransaction, bool, QQueryOperations> isReceivedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isReceived');
@@ -961,7 +1017,7 @@ extension CreditTransactionQueryProperty
   }
 
   QueryBuilder<CreditTransaction, String?, QQueryOperations>
-  photoPathProperty() {
+      photoPathProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'photoPath');
     });

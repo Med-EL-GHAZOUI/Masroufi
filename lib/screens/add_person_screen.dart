@@ -17,6 +17,9 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
   final _formKey = GlobalKey<FormState>();
   String _name = '';
   String _phone = '';
+  String _address = '';
+  String _email = '';
+  String _note = '';
 
   void _save() {
     if (_formKey.currentState!.validate()) {
@@ -24,6 +27,9 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
       final person = Person()
         ..name = _name
         ..phone = _phone
+        ..address = _address.isEmpty ? null : _address
+        ..email = _email.isEmpty ? null : _email
+        ..note = _note.isEmpty ? null : _note
         ..isClient = widget.isClient;
 
       Provider.of<CreditProvider>(context, listen: false).addPerson(person);
@@ -41,8 +47,9 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
-            children: [
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
               TextFormField(
                 decoration: InputDecoration(
                   labelText: 'name'.tr(),
@@ -74,6 +81,50 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
                 keyboardType: TextInputType.phone,
                 onSaved: (value) => _phone = value ?? '',
               ),
+              const SizedBox(height: 16),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: '${'address'.tr()} ${'optional'.tr()}',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  prefixIcon: const Icon(Icons.location_on),
+                ),
+                onSaved: (value) => _address = value ?? '',
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: '${'email'.tr()} ${'optional'.tr()}',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  prefixIcon: const Icon(Icons.email),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                onSaved: (value) => _email = value ?? '',
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: '${'note'.tr()} ${'optional'.tr()}',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  prefixIcon: const Icon(Icons.notes),
+                ),
+                maxLines: 3,
+                onSaved: (value) => _note = value ?? '',
+              ),
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
@@ -95,6 +146,7 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
                 ),
               ),
             ],
+          ),
           ),
         ),
       ),

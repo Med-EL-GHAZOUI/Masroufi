@@ -563,7 +563,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
 
-    final recent = provider.transactions.take(5).toList();
+    final recent = provider.transactions.where((t) => !t.isArchived).take(5).toList();
 
     return ListView.separated(
       shrinkWrap: true,
@@ -601,13 +601,87 @@ class _DashboardScreenState extends State<DashboardScreen> {
               t.date.toString().substring(0, 10),
               style: TextStyle(color: Colors.grey[600], fontSize: 13),
             ),
-            trailing: Text(
-              '${isExpense ? '-' : '+'}${t.amount.toStringAsFixed(2)} DH',
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 16,
-                color: isExpense ? Colors.red : Colors.green,
-              ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${isExpense ? '-' : '+'}${t.amount.toStringAsFixed(2)} DH',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                    color: isExpense ? Colors.red : Colors.green,
+                  ),
+                ),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert, color: Colors.grey),
+                  onSelected: (value) async {
+                    if (value == 'edit') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AddTransactionScreen(transactionToEdit: t),
+                        ),
+                      );
+                    } else if (value == 'archive') {
+                      await provider.archiveTransaction(t.id, !t.isArchived);
+                    } else if (value == 'delete') {
+                      // Confirm delete
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: Text('confirm'.tr()),
+                          content: Text('delete_transaction_confirm'.tr()),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: Text('cancel'.tr()),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                await provider.deleteTransaction(t);
+                                Navigator.pop(ctx);
+                              },
+                              child: Text('delete'.tr(), style: const TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.edit, size: 20),
+                          const SizedBox(width: 8),
+                          Text('edit'.tr()),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'archive',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.archive, size: 20),
+                          const SizedBox(width: 8),
+                          const Text('Archiver'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.delete, color: Colors.red, size: 20),
+                          const SizedBox(width: 8),
+                          Text('delete'.tr(), style: const TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         );

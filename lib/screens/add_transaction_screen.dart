@@ -68,8 +68,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       final provider = Provider.of<FinanceProvider>(context, listen: false);
 
       if (widget.transactionToEdit != null) {
-        // Implement update later
-        // provider.updateTransaction(transaction);
+        provider.updateTransaction(widget.transactionToEdit!, transaction);
       } else {
         provider.addTransaction(transaction);
       }
@@ -204,7 +203,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 items: categories.map((cat) {
                   return DropdownMenuItem<int>(
                     value: cat.id,
-                    child: Text(cat.name),
+                    child: Text(cat.name.tr()),
                   );
                 }).toList(),
                 onChanged: (val) {
@@ -230,7 +229,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 items: accounts.map((acc) {
                   return DropdownMenuItem<int>(
                     value: acc.id,
-                    child: Text(acc.name),
+                    child: Text(acc.name.tr()),
                   );
                 }).toList(),
                 onChanged: (val) {

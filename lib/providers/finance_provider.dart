@@ -115,6 +115,39 @@ class FinanceProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateTransaction(TransactionModel oldTxn, TransactionModel newTxn) async {
+    final isar = await dbService.isar;
+    await isar.writeTxn(() async {
+      await isar.transactionModels.put(newTxn);
+    });
+
+    // Revert old transaction effect
+    double oldAmountChange = oldTxn.isExpense ? oldTxn.amount : -oldTxn.amount;
+    await updateAccountBalance(oldTxn.accountId, oldAmountChange);
+
+    // Apply new transaction effect
+    double newAmountChange = newTxn.isExpense ? -newTxn.amount : newTxn.amount;
+    await updateAccountBalance(newTxn.accountId, newAmountChange);
+
+    await _loadTransactions();
+    notifyListeners();
+    SyncService.instance.syncData();
+  }
+
+  Future<void> archiveTransaction(int id, bool archive) async {
+    final isar = await dbService.isar;
+    final txn = await isar.transactionModels.get(id);
+    if (txn != null) {
+      txn.isArchived = archive;
+      await isar.writeTxn(() async {
+        await isar.transactionModels.put(txn);
+      });
+      await _loadTransactions();
+      notifyListeners();
+      SyncService.instance.syncData();
+    }
+  }
+
   // --- Budgets ---
   Future<void> _loadBudgets() async {
     final isar = await dbService.isar;
