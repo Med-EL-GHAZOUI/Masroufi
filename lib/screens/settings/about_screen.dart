@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:ui' as ui;
+import '../../widgets/premium_header.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -8,10 +9,14 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('about_app'.tr()),
-      ),
-      body: Center(
+      body: Column(
+        children: [
+          PremiumHeader(
+            title: 'about_app'.tr(),
+            leading: const BackButton(color: Colors.white),
+          ),
+          Expanded(
+            child: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -112,6 +117,9 @@ class AboutScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+      ),
+      ],
       ),
     );
   }

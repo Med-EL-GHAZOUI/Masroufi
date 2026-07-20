@@ -10,8 +10,45 @@ class GoalsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('goals'.tr()), centerTitle: true),
-      body: Consumer<FinanceProvider>(
+      body: Column(
+        children: [
+          // Gradient Header
+          Container(
+            padding: const EdgeInsets.only(top: 60, bottom: 30, left: 20, right: 20),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1B4E3B), Color(0xFF0077B6)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                Expanded(
+                  child: Text(
+                    'goals'.tr(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(width: 48), // Balance for back button
+              ],
+            ),
+          ),
+          Expanded(
+            child: Consumer<FinanceProvider>(
         builder: (context, finance, child) {
           if (finance.goals.isEmpty) {
             return Center(
@@ -164,6 +201,9 @@ class GoalsScreen extends StatelessWidget {
             },
           );
         },
+      ),
+      ),
+      ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddGoalDialog(context),

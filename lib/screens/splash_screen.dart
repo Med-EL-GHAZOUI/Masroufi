@@ -5,7 +5,7 @@ import 'dart:async';
 import 'dashboard_screen.dart';
 import 'onboarding_screen.dart';
 import 'settings/pin_screen.dart';
-
+import 'dart:async';
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -34,6 +34,7 @@ class _SplashScreenState extends State<SplashScreen> {
       return;
     }
 
+    // Authentication check removed as per user request
     final usePin = prefs.getBool('usePin') ?? false;
 
     if (usePin) {

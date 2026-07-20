@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'pin_screen.dart';
+import '../../widgets/premium_header.dart';
 
 class SecurityScreen extends StatefulWidget {
   const SecurityScreen({super.key});
@@ -102,25 +103,22 @@ class _SecurityScreenState extends State<SecurityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('security'.tr()),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+      body: Column(
         children: [
+          PremiumHeader(
+            title: 'security'.tr(),
+            leading: const BackButton(color: Colors.white),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
           SwitchListTile(
             title: const Text('Code PIN'),
             subtitle: const Text('Activer un code PIN au démarrage'),
             value: _usePin,
             onChanged: _togglePin,
             secondary: const Icon(Icons.password, color: Colors.blueGrey),
-          ),
-          SwitchListTile(
-            title: const Text('Biométrie'),
-            subtitle: const Text('Utiliser l\'empreinte digitale'),
-            value: _useBiometrics,
-            onChanged: _toggleBiometrics,
-            secondary: const Icon(Icons.fingerprint, color: Colors.blueGrey),
           ),
           const SizedBox(height: 24),
           if (_usePin)
@@ -131,6 +129,9 @@ class _SecurityScreenState extends State<SecurityScreen> {
               ),
               child: const Text('Modifier le code PIN', style: TextStyle(fontSize: 16)),
             ),
+              ],
+            ),
+          ),
         ],
       ),
     );

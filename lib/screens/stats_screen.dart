@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../providers/finance_provider.dart';
 import '../services/export_service.dart';
+import '../widgets/premium_header.dart';
 
 class StatsScreen extends StatelessWidget {
   const StatsScreen({super.key});
@@ -22,36 +23,36 @@ class StatsScreen extends StatelessWidget {
           (categoryTotals[t.categoryId] ?? 0) + t.amount;
     }
 
-    return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'overview'.tr(),
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.picture_as_pdf, color: Colors.red),
-                      onPressed: () => ExportService.exportToPdf(provider),
-                      tooltip: 'export_pdf'.tr(),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.table_chart, color: Colors.green),
-                      onPressed: () => ExportService.exportToExcel(provider),
-                      tooltip: 'export_excel'.tr(),
-                    ),
-                  ],
-                ),
-              ],
+    return Column(
+      children: [
+        PremiumHeader(
+          title: 'overview'.tr(),
+          leading: Builder(
+            builder: (ctx) => IconButton(
+              icon: const Icon(Icons.menu, color: Colors.white),
+              onPressed: () => Scaffold.of(ctx).openDrawer(),
             ),
-            const SizedBox(height: 24),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+              onPressed: () => ExportService.exportToPdf(provider),
+              tooltip: 'export_pdf'.tr(),
+            ),
+            IconButton(
+              icon: const Icon(Icons.table_chart, color: Colors.white),
+              onPressed: () => ExportService.exportToExcel(provider),
+              tooltip: 'export_excel'.tr(),
+            ),
+          ],
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+              const SizedBox(height: 8),
             _buildBarChart(provider, context),
             const SizedBox(height: 32),
             if (categoryTotals.isNotEmpty) ...[
@@ -123,6 +124,8 @@ class StatsScreen extends StatelessWidget {
           ],
         ),
       ),
+      ),
+      ],
     );
   }
 

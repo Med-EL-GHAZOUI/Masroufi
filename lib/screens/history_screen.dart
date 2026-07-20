@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../providers/finance_provider.dart';
 import 'add_transaction_screen.dart';
+import '../widgets/premium_header.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -28,11 +29,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
       return noteMatch || categoryMatch;
     }).toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('all_transactions'.tr()),
-        centerTitle: true,
-        actions: [
+    return Column(
+      children: [
+        PremiumHeader(
+          title: 'all_transactions'.tr(),
+          leading: Builder(
+            builder: (ctx) => IconButton(
+              icon: const Icon(Icons.menu, color: Colors.white),
+              onPressed: () => Scaffold.of(ctx).openDrawer(),
+            ),
+          ),
+          actions: [
           IconButton(
             icon: Icon(_showArchived ? Icons.archive : Icons.archive_outlined),
             tooltip: 'Afficher les archives',
@@ -59,7 +66,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Theme.of(context).cardColor,
+                fillColor: Colors.white,
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
               ),
               onChanged: (value) {
@@ -70,8 +77,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
           ),
         ),
-      ),
-      body: filteredTransactions.isEmpty
+        ), // close PremiumHeader
+        Expanded(
+          child: filteredTransactions.isEmpty
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -214,6 +222,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 );
               },
             ),
+        ),
+      ],
     );
   }
 }

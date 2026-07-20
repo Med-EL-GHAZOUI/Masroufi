@@ -6,7 +6,6 @@ import '../models/transaction.dart';
 import '../models/budget.dart';
 import '../models/goal.dart';
 import '../services/local_db_service.dart';
-import '../services/sync_service.dart';
 
 class FinanceProvider with ChangeNotifier {
   List<Account> _accounts = [];
@@ -45,7 +44,6 @@ class FinanceProvider with ChangeNotifier {
     });
     await _loadAccounts();
     notifyListeners();
-    SyncService.instance.syncData();
   }
 
   Future<void> updateAccountBalance(int accountId, double amountChange) async {
@@ -62,7 +60,6 @@ class FinanceProvider with ChangeNotifier {
     });
     await _loadAccounts();
     notifyListeners();
-    SyncService.instance.syncData();
   }
 
   // --- Categories ---
@@ -94,7 +91,6 @@ class FinanceProvider with ChangeNotifier {
 
     await _loadTransactions();
     notifyListeners();
-    SyncService.instance.syncData();
   }
 
   Future<void> deleteTransaction(TransactionModel transaction) async {
@@ -131,7 +127,6 @@ class FinanceProvider with ChangeNotifier {
 
     await _loadTransactions();
     notifyListeners();
-    SyncService.instance.syncData();
   }
 
   Future<void> archiveTransaction(int id, bool archive) async {
@@ -144,7 +139,6 @@ class FinanceProvider with ChangeNotifier {
       });
       await _loadTransactions();
       notifyListeners();
-      SyncService.instance.syncData();
     }
   }
 
@@ -161,7 +155,6 @@ class FinanceProvider with ChangeNotifier {
     });
     await _loadBudgets();
     notifyListeners();
-    SyncService.instance.syncData();
   }
 
   // --- Goals ---
@@ -177,7 +170,6 @@ class FinanceProvider with ChangeNotifier {
     });
     await _loadGoals();
     notifyListeners();
-    SyncService.instance.syncData();
   }
 
   Future<void> updateGoal(SavingsGoal goal) async {
@@ -188,7 +180,6 @@ class FinanceProvider with ChangeNotifier {
     });
     await _loadGoals();
     notifyListeners();
-    SyncService.instance.syncData();
   }
 
   Future<void> deleteGoal(int id) async {
@@ -198,7 +189,6 @@ class FinanceProvider with ChangeNotifier {
     });
     await _loadGoals();
     notifyListeners();
-    SyncService.instance.syncData();
   }
 
   // --- Calculations ---

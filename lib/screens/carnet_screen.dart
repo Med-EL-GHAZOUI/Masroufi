@@ -6,6 +6,7 @@ import '../services/export_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'add_person_screen.dart';
 import 'person_details_screen.dart';
+import '../widgets/premium_header.dart';
 
 class CarnetScreen extends StatefulWidget {
   const CarnetScreen({super.key});
@@ -22,9 +23,17 @@ class _CarnetScreenState extends State<CarnetScreen> {
     final creditProvider = Provider.of<CreditProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text('carnet'.tr()), centerTitle: true),
       body: Column(
         children: [
+          PremiumHeader(
+            title: 'carnet'.tr(),
+            leading: Builder(
+              builder: (ctx) => IconButton(
+                icon: const Icon(Icons.menu, color: Colors.white),
+                onPressed: () => Scaffold.of(ctx).openDrawer(),
+              ),
+            ),
+          ),
           // Segmented Control (Client / Supplier)
           Padding(
             padding: const EdgeInsets.all(16.0),

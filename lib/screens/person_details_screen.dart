@@ -13,6 +13,7 @@ import '../models/person.dart';
 import '../models/credit_transaction.dart';
 import '../providers/credit_provider.dart';
 import 'add_credit_transaction_screen.dart';
+import '../widgets/premium_header.dart';
 
 class PersonDetailsScreen extends StatefulWidget {
   final Person person;
@@ -295,58 +296,62 @@ class _PersonDetailsScreenState extends State<PersonDetailsScreen> {
     final balance = creditProvider.getPersonBalance(widget.person.id);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.person.name),
-        actions: [
-          IconButton(
-            icon: Icon(
-              _showArchived ? Icons.archive : Icons.archive_outlined,
-              color: _showArchived ? Colors.orange : null,
-            ),
-            onPressed: () {
-              setState(() {
-                _showArchived = !_showArchived;
-              });
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
-            onPressed: () => _generatePdf(context, transactions, balance),
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: Text('confirm'.tr()),
-                  content: Text('delete_person_confirm'.tr(args: [widget.person.name])),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: Text('cancel'.tr()),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        await creditProvider.deletePerson(widget.person.id);
-                        Navigator.pop(ctx); // Close dialog
-                        Navigator.pop(context); // Go back to CarnetScreen
-                      },
-                      child: Text(
-                        'delete'.tr(),
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
-      ),
       body: Column(
         children: [
-          Card(
+          PremiumHeader(
+            title: widget.person.name,
+            leading: const BackButton(color: Colors.white),
+            actions: [
+              IconButton(
+                icon: Icon(
+                  _showArchived ? Icons.archive : Icons.archive_outlined,
+                  color: _showArchived ? Colors.orange : Colors.white,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _showArchived = !_showArchived;
+                  });
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+                onPressed: () => _generatePdf(context, transactions, balance),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.redAccent),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: Text('confirm'.tr()),
+                      content: Text('delete_person_confirm'.tr(args: [widget.person.name])),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: Text('cancel'.tr()),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            await creditProvider.deletePerson(widget.person.id);
+                            if (ctx.mounted) Navigator.pop(ctx); // Close dialog
+                            if (context.mounted) Navigator.pop(context); // Go back to CarnetScreen
+                          },
+                          child: Text(
+                            'delete'.tr(),
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          Expanded(
+            child: Column(
+              children: [
+                Card(
             margin: const EdgeInsets.all(16),
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -618,6 +623,9 @@ class _PersonDetailsScreenState extends State<PersonDetailsScreen> {
                   ),
           ),
         ],
+      ),
+      ),
+      ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

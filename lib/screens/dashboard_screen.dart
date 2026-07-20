@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/finance_provider.dart';
-import '../services/auth_service.dart';
+import '../models/transaction.dart';
 import 'add_transaction_screen.dart';
 import 'stats_screen.dart';
 import 'splash_screen.dart';
@@ -14,6 +14,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../services/local_db_service.dart';
 import '../services/export_service.dart';
 import '../providers/credit_provider.dart';
+import '../widgets/premium_header.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -24,6 +25,31 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
+
+  Widget _buildDrawerItem({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: Theme.of(context).primaryColor),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+        onTap: onTap,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,159 +63,182 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('app_title'.tr()),
-        actions: [
-
-        ],
-      ),
       drawer: Drawer(
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.horizontal(right: Radius.circular(30)),
+        ),
         child: Column(
           children: [
-            DrawerHeader(
+            Container(
+              padding: const EdgeInsets.only(top: 60, bottom: 20, left: 24, right: 24),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
                     Theme.of(context).primaryColor,
-                    Theme.of(context).primaryColor.withOpacity(0.8),
+                    Theme.of(context).primaryColorDark,
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-              ),
-              child: Container(
-                width: double.infinity,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    const Text(
-                      'Masroufi',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'app_subtitle'.tr(),
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
+                borderRadius: const BorderRadius.only(
+                  bottomRight: Radius.circular(30),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  )
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.white24,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.white,
+                      child: Icon(Icons.account_balance_wallet, size: 30, color: Colors.green),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Masroufi',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'app_subtitle'.tr(),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
+            const SizedBox(height: 16),
             Expanded(
               child: ListView(
-                padding: EdgeInsets.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 children: [
-                  ListTile(
-                    leading: const Icon(Icons.track_changes),
-                    title: Text('goals'.tr()),
+                  _buildDrawerItem(
+                    context: context,
+                    icon: Icons.track_changes,
+                    title: 'goals'.tr(),
                     onTap: () {
-                      Navigator.pop(context); // Close drawer
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const GoalsScreen()),
-                      );
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const GoalsScreen()));
                     },
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.account_balance),
-                    title: Text('budgets'.tr()),
+                  _buildDrawerItem(
+                    context: context,
+                    icon: Icons.account_balance,
+                    title: 'budgets'.tr(),
                     onTap: () {
-                      Navigator.pop(context); // Close drawer
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const BudgetsScreen(),
-                        ),
-                      );
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const BudgetsScreen()));
                     },
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.settings),
-                    title: Text('settings'.tr()),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                    child: Divider(),
+                  ),
+                  _buildDrawerItem(
+                    context: context,
+                    icon: Icons.settings_outlined,
+                    title: 'settings'.tr(),
                     onTap: () {
-                      Navigator.pop(context); // Close drawer
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SettingsScreen(),
-                        ),
-                      );
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
                     },
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1),
-            ListTile(
-              leading: const Icon(Icons.archive, color: Colors.orange),
-              title: Text(
-                'archive_reset'.tr(),
-                style: const TextStyle(color: Colors.orange),
-              ),
-              onTap: () {
-                Navigator.pop(context); // Close drawer
-                showDialog(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: const Text('Attention'),
-                    content: Text('archive_warning'.tr()),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        child: Text('cancel'.tr()),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.pop(context); // Close drawer
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Attention'),
+                        content: Text('archive_warning'.tr()),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: Text('cancel'.tr()),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              Navigator.pop(ctx);
+                              final financeProvider = Provider.of<FinanceProvider>(context, listen: false);
+                              // 1. Export
+                              await ExportService.exportToExcel(financeProvider);
+                              // 2. Clear
+                              await LocalDbService.instance.clearAllData();
+                              // 3. Reload
+                              await financeProvider.loadData();
+                              await Provider.of<CreditProvider>(context, listen: false).loadData();
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('archive_success'.tr())),
+                                );
+                              }
+                            },
+                            child: Text('archive_reset'.tr(), style: const TextStyle(color: Colors.orange)),
+                          ),
+                        ],
                       ),
-                      TextButton(
-                        onPressed: () async {
-                          Navigator.pop(ctx);
-                          final financeProvider =
-                              Provider.of<FinanceProvider>(
-                                context,
-                                listen: false,
-                              );
-
-                          // 1. Export
-                          await ExportService.exportToExcel(
-                            financeProvider,
-                          );
-
-                          // 2. Clear
-                          await LocalDbService.instance.clearAllData();
-
-                          // 3. Reload
-                          await financeProvider.loadData();
-                          await Provider.of<CreditProvider>(
-                            context,
-                            listen: false,
-                          ).loadData();
-
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('archive_success'.tr()),
-                              ),
-                            );
-                          }
-                        },
-                        child: Text(
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.archive_outlined, color: Colors.orange),
+                        const SizedBox(width: 12),
+                        Text(
                           'archive_reset'.tr(),
-                          style: const TextStyle(color: Colors.orange),
+                          style: const TextStyle(
+                            color: Colors.orange,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                );
-              },
+                ),
+              ),
             ),
-
-            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -209,31 +258,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: const Icon(Icons.add, color: Colors.white),
             ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: (index) {
           setState(() {
             _selectedIndex = index;
           });
         },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.grey,
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.home),
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home),
             label: 'home'.tr(),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.list_alt),
+          NavigationDestination(
+            icon: const Icon(Icons.list_alt_outlined),
+            selectedIcon: const Icon(Icons.list_alt),
             label: 'history'.tr(),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.pie_chart),
+          NavigationDestination(
+            icon: const Icon(Icons.pie_chart_outline),
+            selectedIcon: const Icon(Icons.pie_chart),
             label: 'stats'.tr(),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.menu_book),
+          NavigationDestination(
+            icon: const Icon(Icons.menu_book_outlined),
+            selectedIcon: const Icon(Icons.menu_book),
             label: 'carnet'.tr(),
           ),
         ],
@@ -242,12 +292,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildHomeTab(FinanceProvider provider) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    return Column(
+      children: [
+        PremiumHeader(
+          title: 'app_title'.tr(),
+          leading: Builder(
+            builder: (ctx) => IconButton(
+              icon: const Icon(Icons.menu, color: Colors.white),
+              onPressed: () => Scaffold.of(ctx).openDrawer(),
+            ),
+          ),
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
 
           Text(
             'motivation_quote'.tr(),
@@ -284,8 +346,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 16),
           _buildRecentTransactions(provider),
-        ],
-      ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -381,11 +446,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).primaryColor,
-            Theme.of(context).primaryColor.withOpacity(0.8),
-          ],
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2C3E50), Color(0xFF4CA1AF)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

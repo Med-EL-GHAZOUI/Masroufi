@@ -7,14 +7,11 @@ import 'screens/splash_screen.dart';
 import 'providers/finance_provider.dart';
 import 'providers/credit_provider.dart';
 
-import 'services/sync_service.dart';
 import 'services/notification_service.dart';
-import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  SyncService.instance.startSyncListener();
   await NotificationService.instance.initialize();
   await EasyLocalization.ensureInitialized();
   runApp(
@@ -36,7 +33,6 @@ class MasroufiApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => FinanceProvider()..loadData()),
         ChangeNotifierProvider(create: (_) => CreditProvider()..loadData()),
-        ChangeNotifierProvider(create: (_) => AuthService()),
       ],
       child: MaterialApp(
         title: 'Masroufi',
